@@ -1,103 +1,153 @@
-import Image from "next/image";
+"use client";
+import { useState } from "react";
+import zxcvbn from "zxcvbn";
+import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Cover } from "@/components/ui/cover";
 
-export default function Home() {
+export default function PasswordAnalysis() {
+  const [password, setPassword] = useState("");
+  const [strengthScore, setStrengthScore] = useState(0);
+  const [strengthLabel, setStrengthLabel] = useState("");
+  const [timeToCrack, setTimeToCrack] = useState({});
+  const [emailBreaches, setEmailBreaches] = useState(0);
+  const [suggestion, setSuggestion] = useState("");
+  const [showResults, setShowResults] = useState(false);
+
+  // Function to handle real-time password analysis
+  const handlePasswordChange = (e) => {
+    const newPassword = e.target.value;
+    setPassword(newPassword);
+
+    if (newPassword) {
+      const analysis = zxcvbn(newPassword);
+      setStrengthScore(analysis.score); // Score ranges from 0 (weak) to 4 (strong)
+
+      // Set strength label based on score
+      switch (analysis.score) {
+        case 0:
+        case 1:
+          setStrengthLabel("Weak");
+          break;
+        case 2:
+          setStrengthLabel("Moderate");
+          break;
+        case 3:
+          setStrengthLabel("Strong");
+          break;
+        case 4:
+          setStrengthLabel("Very Strong");
+          break;
+        default:
+          setStrengthLabel("");
+      }
+    } else {
+      // Reset if input is empty
+      setStrengthScore(0);
+      setStrengthLabel("");
+    }
+
+    // Hide results while typing
+    setShowResults(false);
+  };
+
+  // Function to analyze password details on button click
+  const handleAnalyzeClick = () => {
+    if (!password) return;
+
+    const analysis = zxcvbn(password);
+
+    // Set time-to-crack estimates
+    setTimeToCrack({
+      bruteForce: analysis.crack_times_display.offline_slow_hashing_1e4_per_second,
+      dictionary: analysis.crack_times_display.online_no_throttling_10_per_second,
+      hybrid: analysis.crack_times_display.online_throttling_100_per_hour,
+    });
+
+    // Simulated email breaches and suggestions for demo purposes
+    setEmailBreaches(analysis.feedback.suggestions.length > 0 ? 3 : 0);
+    setSuggestion("7H3_m0unt@in$_R!s3_2024");
+
+    // Show detailed results
+    setShowResults(true);
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="min-w-6xl flex flex-col items-center min-h-screen p-4">
+      <h1 className="text-4xl md:text-5xl lg:text-6xl font-semibold max-w-7xl mx-auto text-center mt-6 relative z-20 py-6 bg-clip-text text-transparent bg-gradient-to-b from-neutral-800 via-neutral-700 to-neutral-700 dark:from-neutral-800 dark:via-white dark:to-white">
+        Your <Cover>Password</Cover>, Your <Cover>Security</Cover>
+      </h1>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+      <Card className="min-w-2xl max-w-6xl mx-auto mt-10 p-3 shadow-lg">
+        <CardContent>
+          {/* Password Input */}
+          <div className="mb-4">
+            <Input
+              type="password"
+              placeholder="Enter your password"
+              value={password}
+              onChange={handlePasswordChange}
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          </div>
+
+          {/* Real-Time Feedback */}
+          <div className="mb-1">
+            <label className="block text-sm font-medium mb-2">Password Strength:</label>
+            <Progress value={(strengthScore / 4) * 100} className="h-2" />
+            <p className={`text-sm mt-1 ${strengthLabel === "Weak" ? "text-red-500" : strengthLabel === "Moderate" ? "text-yellow-500" : "text-green-500"}`}>
+              {strengthLabel}
+            </p>
+          </div>
+
+          {/* Detailed Results Section */}
+          {showResults && (
+            <>
+              {/* Time to Crack */}
+              <div className="mb-4">
+                <h3 className="text-sm font-medium mb-2">Time to Crack:</h3>
+                <ul className="text-sm text-gray-600 space-y-1">
+                  <li>Brute Force: {timeToCrack.bruteForce}</li>
+                  <li>Dictionary Attack: {timeToCrack.dictionary}</li>
+                  <li>Hybrid Attack: {timeToCrack.hybrid}</li>
+                </ul>
+              </div>
+
+              {/* AI Analysis */}
+              <div className="mb-4">
+                <h3 className="text-sm font-medium mb-2">AI Analysis:</h3>
+                <ul className="text-sm text-gray-600 space-y-1">
+                  {zxcvbn(password).feedback.suggestions.map((suggestion, index) => (
+                    <li key={index}>{suggestion}</li>
+                  ))}
+                  {/* {emailBreaches > 0 && (
+                    <li>Your email appears in {emailBreaches} breaches.</li>
+                  )} */}
+                </ul>
+              </div>
+
+              {/* Suggestion */}
+              <div className="">
+                <h3 className="text-sm font-medium mb-2">AI Suggestion:</h3>
+                <div className="flex gap-2">
+                  <Input value={suggestion} readOnly />
+                  <Button variant="outline" size="sm" className="">
+                    Copy
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
+        </CardContent>
+
+        {/* Footer */}
+        <CardFooter className="flex justify-center">
+          <Button className="w-sm" onClick={handleAnalyzeClick}>
+            Analyze
+          </Button>
+        </CardFooter>
+      </Card>
     </div>
   );
 }
